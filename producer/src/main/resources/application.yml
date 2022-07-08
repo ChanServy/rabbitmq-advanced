@@ -1,0 +1,13 @@
+spring:
+  rabbitmq:
+    host: localhost # 主机名
+    port: 5672 # 端口
+    virtual-host: / # 虚拟主机
+    username: root # 用户名
+    password: 123456 # 密码
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
+server:
+  port: 8082
