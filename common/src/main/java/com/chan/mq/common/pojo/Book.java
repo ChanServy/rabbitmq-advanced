@@ -2,6 +2,8 @@ package com.chan.mq.common.pojo;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * 生产者消费者服务间传递的消息是对象时，对象的引用路径必须一致
  * 这样就得将这个对象抽取出来放到公共模块
@@ -12,7 +14,7 @@ import lombok.Data;
  * @since 2022/7/7
  */
 @Data
-public class Book {
+public class Book implements Serializable {
     private String name;
     private String author;
 }

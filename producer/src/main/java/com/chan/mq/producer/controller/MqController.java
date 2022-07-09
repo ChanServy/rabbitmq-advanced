@@ -97,7 +97,7 @@ public class MqController {
         movie.setId(1);
         movie.setName("复仇者联盟");
         movie.setAuthor("漫威");
-        String movieJson = JSONUtil.toJsonStr(movie);
+        // String movieJson = JSONUtil.toJsonStr(movie);
         // 全局唯一的消息ID，需要封装到CorrelationData中
         CorrelationData correlationData = new CorrelationData(String.valueOf(movie.getId()));
         // 添加callback
@@ -117,7 +117,7 @@ public class MqController {
             // 重发消息
         });
         // 发送消息
-        rabbitTemplate.convertAndSend("fanout.exchange", "", movieJson, correlationData);
+        rabbitTemplate.convertAndSend("simple.queue", movie, correlationData);
         return R.ok();
     }
 
@@ -136,12 +136,12 @@ public class MqController {
 
     /**
      * 由于我们需要设置消息的TTL超时时间，因此需要使用MessageBuilder的方式发送消息。当使用MessageBuilder发送消息到MQ时，会有一个问题：
-     * 就是当我们项目中同时配置了Jackson2JsonMessageConverter将对象类型的消息序列化成JSON，消息序列化时会出错导致异常。
+     * 就是当我们项目中同时配置了Jackson2JsonMessageConverter(将对象类型的消息序列化成JSON)，消息序列化时会出错导致异常。
      * 取消这个序列化配置，就不会出错了，但是取消序列化配置之后，发送对象类型的消息（比如消息体是一个Book类型）时又会报错。
-     * 显示SimpleMessageConverter只能转换String、字节数组等基本类型，因此目前暂时想到的一个万全之策就是不配置序列化转换，
-     * 我们自己进行对象的JSON序列化转换之后，再将对象的JSON字符串发送到MQ，消费者收到JSON之后再将JSON序列化成对象包装类。
+     * 显示SimpleMessageConverter只能转换String、字节数组等基本类型，因此我们可以让这个对象实现Serializable；
+     * 但是不配置JSON序列化，而使用Java的Serializable序列化的话，将对象消息发送到MQ服务器时可读性太差。
+     * 因此，最好的方式是我们自己将对象序列化成JSON字符串之后，再将对象的JSON字符串发送到MQ，消费者收到JSON之后再将JSON序列化成对象包装类。
      * 简单来说就是如果我们想发送一个我们自己的对象类型到MQ，我们自己完成JSON序列化和反序列化，不用通过配置让MQ帮我们完成。
-     * 这样我们发送的无论是一个简单的字符串还是一个对象序列化后的JSON字符串都可以，也可设置消息的超时时间（通过MessageBuilder）
      * @return R
      */
     @RequestMapping("/ttlmsg")
